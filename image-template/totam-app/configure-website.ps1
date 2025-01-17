@@ -1,6 +1,7 @@
 
 $siteName = "totam"
 
+# TODO: Use a versioned URL from a release
 $installScriptUrl = "https://raw.githubusercontent.com/Totambiz/ttm-az-infra-scripts/refs/heads/main/virtual-machine/totam-app/install-app.ps1"
 $installScriptPath = "C:\install-app.ps1"
 
@@ -144,6 +145,11 @@ Import-Module WebAdministration -ErrorAction SilentlyContinue
 
 New-WebAppPool -Name $siteName -Force
 New-Website -Name $siteName -PhysicalPath $physicalPath -ApplicationPool $siteName -Force
+
+Start-IISCommitDelay
+(Get-IISAppPool -Name $siteName).enable32BitAppOnWin64 = $false
+Stop-IISCommitDelay
+Log-Message "Configured $siteName App Pool"
 
 Log-Message "$siteName Website configured successfully"
 
