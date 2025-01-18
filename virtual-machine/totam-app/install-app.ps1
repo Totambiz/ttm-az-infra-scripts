@@ -2,6 +2,13 @@ param (
     [string]$SourceCodeUrl
 )
 
+Import-Module Az.Accounts
+Import-Module Az.Resources
+Import-Module Az.Storage
+
+# Authenticate using the managed identity
+Connect-AzAccount -Identity 
+
 $siteName = "totam"
 $destinationPath = "C:\inetpub\wwwroot\$siteName"
 $downloadPath = "C:\temp\$siteName.zip"
@@ -57,7 +64,9 @@ else {
 }
 
 Log-Message "Downloading application zip from $SourceCodeUrl and saving it to $downloadPath..."
-Invoke-WebRequest -Uri $SourceCodeUrl -OutFile $downloadPath
+
+Get-AzStorageBlobContent -Uri $SourceCodeUrl -Destination $downloadPath
+
 Log-Message "Application zip downloaded and saved to $downloadPath"
 
 Log-Message "Deleting all existing files in $destinationPath..."
