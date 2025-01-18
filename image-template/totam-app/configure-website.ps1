@@ -1,4 +1,4 @@
-Install-PackageProvider -Name NuGet
+Install-PackageProvider -Name NuGet -Force
 Install-Module -Name PowerShellGet -Force
 Install-Module -Name Az -AllowClobber -Force
 Import-Module PKI -ErrorAction SilentlyContinue
