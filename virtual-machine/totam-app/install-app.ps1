@@ -3,7 +3,7 @@ param (
 )
 
 $siteName = "totam"
-
+$destinationPath = "C:\inetpub\wwwroot\$siteName"
 $downloadPath = "C:\temp\$siteName.zip"
 
 $logDirectory = "C:\logs"
