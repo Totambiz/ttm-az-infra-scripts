@@ -1,9 +1,10 @@
 param (
-    [string]$SourceCodeUrl
+    [string]$StorageAccountName,
+    [string]$ContainerName,
+    [string]$Blob
 )
 
 Import-Module Az.Accounts
-Import-Module Az.Resources
 Import-Module Az.Storage
 
 # Authenticate using the managed identity
@@ -43,12 +44,27 @@ Trap {
     exit 1
 }
 
-if (-not $SourceCodeUrl) {
-    Log-Message "SourceCodeUrl argument missing. Cannot proceed."
+if (-not $StorageAccountName) {
+    Log-Message "StorageAccountName param is required."
     exit 1
 }
 
-Log-Message "SourceCodeUrl argument provided: $SourceCodeUrl"
+Log-Message "StorageAccountName param provided: $StorageAccountName"
+
+if (-not $ContainerName) {
+    Log-Message "ContainerName param is required."
+    exit 1
+}
+
+Log-Message "ContainerName param provided: $ContainerName"
+
+if (-not $Blob) {
+    Log-Message "Blob param is required."
+    exit 1
+}
+
+Log-Message "Blob param provided: $Blob"
+
 
 if (-Not (Test-Path -Path $destinationPath)) {
     Log-Message "The application folder doesn't exist at $destinationPath. This image is not configured correctly"
@@ -65,7 +81,9 @@ else {
 
 Log-Message "Downloading application zip from $SourceCodeUrl and saving it to $downloadPath..."
 
-Get-AzStorageBlobContent -Uri $SourceCodeUrl -Destination $downloadPath
+$storageCtx = New-AzStorageContext -StorageAccountName $StorageAccountName
+
+Get-AzStorageBlobContent -Container $ContainerName -Blob $Blob -Destination $downloadPath -Context $storageCtx -Force
 
 Log-Message "Application zip downloaded and saved to $downloadPath"
 
