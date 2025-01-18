@@ -1,3 +1,8 @@
+Install-PackageProvider -Name NuGet
+Install-Module -Name PowerShellGet -Force
+Install-Module -Name Az -AllowClobber -Force
+Import-Module PKI -ErrorAction SilentlyContinue
+Import-Module WebAdministration -ErrorAction SilentlyContinue
 
 $siteName = "totam"
 
@@ -140,9 +145,6 @@ $acl.SetAccessRule($accessRule)
 Set-Acl -Path $physicalPath -AclObject $acl
 
 # Add the website to IIS
-Import-Module PKI -ErrorAction SilentlyContinue
-Import-Module WebAdministration -ErrorAction SilentlyContinue
-
 New-WebAppPool -Name $siteName -Force
 New-Website -Name $siteName -PhysicalPath $physicalPath -ApplicationPool $siteName -Force
 
@@ -153,3 +155,9 @@ Log-Message "Configured $siteName App Pool"
 
 Log-Message "$siteName Website configured successfully"
 
+# Show all file extensions
+$hideFileExtRegPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced"
+
+Set-ItemProperty -Path $hideFileExtRegPath -Name "HideFileExt" -Value 0
+
+Log-Message "Windows is now configured to show all file extensions."
