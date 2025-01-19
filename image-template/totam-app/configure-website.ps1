@@ -62,78 +62,54 @@ Invoke-WebRequest -Uri $installScriptUrl -OutFile $installScriptPath
 
 Log-Message "Install script downloaded and saved to $installScriptPath"
 
-Log-Message "Checking if IIS is already installed..."
+
+Log-Message "Installing IIS..."
+Install-WindowsFeature -Name Web-Server, Web-Asp-Net45, Web-Net-Ext45, Web-ISAPI-Ext, Web-ISAPI-Filter, Web-Mgmt-Tools -IncludeManagementTools
+
 $feature = Get-WindowsFeature -Name Web-Server
 
 if ($feature.Installed) {
-    Log-Message "IIS is already installed."
+    Log-Message "IIS was successfully installed."
 }
 else {
-    Log-Message "Installing IIS..."
-    Install-WindowsFeature -Name Web-Server -IncludeManagementTools -Verbose
-
-    $feature = Get-WindowsFeature -Name Web-Server
-
-    if ($feature.Installed) {
-        Log-Message "IIS was successfully installed."
-    }
-    else {
-        Log-Message "IIS installation failed."
-        exit 1
-    }
-
-    Log-Message "Starting IIS services..."
-    Start-Service -Name W3SVC
-}
-
-Log-Message "Checking if .NET Framework 4.8.1 is already installed..."
-
-if ((Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full" -ErrorAction SilentlyContinue).Release -ge 528372) {
-    Log-Message ".NET Framework 4.8.1 is already installed."
-}
-else {
-    Log-Message "Installing .NET Framework 4.8.1..."
-
-    $dotNetUrl = "https://go.microsoft.com/fwlink/?linkid=2088631"
-    $installerPath = "$env:TEMP\ndp481-x86-x64-allos-enu.exe"
-
-    if (-not (Test-Path $installerPath)) {
-        Log-Message "Downloading .NET Framework 4.8.1 installer..."
-        Invoke-WebRequest -Uri $dotNetUrl -OutFile $installerPath -UseBasicParsing
-    }
-
-    Log-Message "Running .NET Framework 4.8.1 installer..."
-    Start-Process -FilePath $installerPath -ArgumentList "/quiet /norestart" -Wait
-
-    if ((Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full" -ErrorAction SilentlyContinue).Release -ge 528372) {
-        Log-Message ".NET Framework 4.8.1 was successfully installed."
-    }
-    else {
-        Log-Message ".NET Framework 4.8.1 installation failed."
-        exit 1
-    }
-}
-
-Log-Message "Installing URL Rewrite module..."
-
-$urlRewriteUrl = "https://download.microsoft.com/download/1/2/8/128E2E22-C1B9-44A4-BE2A-5859ED1D4592/rewrite_amd64_en-US.msi"
-$urlRewritePath = "$env:TEMP\rewrite_amd64_en-US.msi"
-
-if (-not (Test-Path $urlRewritePath)) {
-    Log-Message "Downloading URL Rewrite module installer..."
-    Invoke-WebRequest -Uri $urlRewriteUrl -OutFile $urlRewritePath -UseBasicParsing
-}
-
-Log-Message "Running URL Rewrite module installer..."
-Start-Process -FilePath "msiexec.exe" -ArgumentList "/i $urlRewritePath /quiet /norestart" -Wait
-
-if (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" | Where-Object { $_.DisplayName -eq "IIS URL Rewrite Module 2" }) {
-    Log-Message "URL Rewrite module was successfully installed."
-}
-else {
-    Log-Message "URL Rewrite module installation failed."
+    Log-Message "IIS installation failed."
     exit 1
 }
+
+Log-Message "Starting IIS services..."
+Start-Service -Name W3SVC
+
+
+$dotNetUrl = "https://go.microsoft.com/fwlink/?linkid=2203305"
+$dotNetInstallerPath = "$env:TEMP\NDP481-x86-x64-AllOS-ENU.exe"
+
+if (Test-Path $dotNetInstallerPath) {
+    Remove-Item -Path $dotNetInstallerPath -Force
+    Log-Message "Existing .NET Framework 4.8.1 installer deleted: $dotNetInstallerPath"
+}
+
+Log-Message "Downloading .NET Framework 4.8.1 installer..."
+Invoke-WebRequest -Uri $dotNetUrl -OutFile $dotNetInstallerPath -UseBasicParsing
+
+Log-Message "Running .NET Framework 4.8.1 installer..."
+Start-Process -FilePath $dotNetInstallerPath -ArgumentList "/quiet /norestart" -Wait
+
+
+Log-Message "Installing URL Rewrite module..."
+$urlRewriteUrl = "https://download.microsoft.com/download/1/2/8/128E2E22-C1B9-44A4-BE2A-5859ED1D4592/rewrite_amd64_en-US.msi"
+$urlRewriteInstallerPath = "$env:TEMP\rewrite_amd64_en-US.msi"
+
+if (Test-Path $urlRewriteInstallerPath) {
+    Remove-Item -Path $urlRewriteInstallerPath -Force
+    Log-Message "Existing URL Rewrite module installer deleted: $urlRewriteInstallerPath"
+}
+
+Log-Message "Downloading URL Rewrite module installer..."
+Invoke-WebRequest -Uri $urlRewriteUrl -OutFile $urlRewriteInstallerPath -UseBasicParsing
+
+Log-Message "Running URL Rewrite module installer..."
+Start-Process -FilePath "msiexec.exe" -ArgumentList "/i $urlRewriteInstallerPath /quiet /norestart" -Wait
+
 
 $websites = Get-Website
 
@@ -186,10 +162,3 @@ Reset-IISServerManager -Confirm:$false
 (Get-IISAppPool -Name $siteName).enable32BitAppOnWin64 = $false
 
 Log-Message "$siteName Website configured successfully"
-
-# Show all file extensions
-$hideFileExtRegPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced"
-
-Set-ItemProperty -Path $hideFileExtRegPath -Name "HideFileExt" -Value 0
-
-Log-Message "Windows is now configured to show all file extensions."
