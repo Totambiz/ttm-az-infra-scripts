@@ -1,9 +1,3 @@
-Install-PackageProvider -Name NuGet -Force
-Install-Module -Name PowerShellGet -Force
-Install-Module -Name Az -AllowClobber -Force
-Import-Module PKI -ErrorAction SilentlyContinue
-Import-Module WebAdministration -ErrorAction SilentlyContinue
-
 $siteName = "totam"
 
 # TODO: Use a versioned URL from a release
@@ -49,6 +43,16 @@ if (Test-Path -Path $installScriptPath) {
     Remove-Item -Path $installScriptPath -Force
     Log-Message "Existing install script file deleted: $installScriptPath"
 }
+
+Log-Message "Installing modules..."
+Install-PackageProvider -Name NuGet -Force
+Install-Module -Name PowerShellGet -Force
+Install-Module -Name Az.Storage -AllowClobber -Force
+Log-Message "Module installation complete"
+
+Import-Module PKI -ErrorAction SilentlyContinue
+Import-Module WebAdministration -ErrorAction SilentlyContinue
+
 
 Log-Message "Downloading install script and saving to $installScriptPath..."
 
@@ -159,5 +163,9 @@ Log-Message "$siteName Website configured successfully"
 $hideFileExtRegPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced"
 
 Set-ItemProperty -Path $hideFileExtRegPath -Name "HideFileExt" -Value 0
+
+# Notify Explorer of the change
+Stop-Process -Name explorer -Force
+Start-Process explorer
 
 Log-Message "Windows is now configured to show all file extensions."

@@ -4,12 +4,6 @@ param (
     [string]$Blob
 )
 
-Import-Module Az.Accounts
-Import-Module Az.Storage
-
-# Authenticate using the managed identity
-Connect-AzAccount -Identity 
-
 $siteName = "totam"
 $destinationPath = "C:\inetpub\wwwroot\$siteName"
 $downloadPath = "C:\temp\$siteName.zip"
@@ -79,7 +73,14 @@ else {
     Log-Message "No previous application zip file found at $downloadPath."
 }
 
-Log-Message "Downloading application zip from $SourceCodeUrl and saving it to $downloadPath..."
+Import-Module Az.Accounts
+Import-Module Az.Storage
+
+Log-Message "Authenticate with Azure using the VM's managed identity.."
+Connect-AzAccount -Identity 
+Log-Message "Authenticated"
+
+Log-Message "Downloading application zip from Azure Storage..."
 
 $storageCtx = New-AzStorageContext -StorageAccountName $StorageAccountName
 
