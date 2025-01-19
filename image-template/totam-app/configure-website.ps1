@@ -44,12 +44,16 @@ if (Test-Path -Path $installScriptPath) {
     Log-Message "Existing install script file deleted: $installScriptPath"
 }
 
-Log-Message "Installing modules..."
+Log-Message "Installing modules and features..."
 Install-PackageProvider -Name NuGet -Force -Scope AllUsers
+
 Install-Module -Name PowerShellGet -Force -Scope AllUsers
 Install-Module -Name Az.Accounts -AllowClobber -Force -Scope AllUsers
 Install-Module -Name Az.Storage -AllowClobber -Force -Scope AllUsers
-Log-Message "Module installation complete"
+ 
+Install-WindowsFeature -Name Web-Server -IncludeManagementTools -IncludeAllSubFeature 
+
+Log-Message "Module and feature installation complete"
 
 Import-Module PKI -ErrorAction SilentlyContinue
 Import-Module WebAdministration -ErrorAction SilentlyContinue
@@ -135,6 +139,37 @@ else {
     exit 1
 }
 
+
+Reset-IISServerManager -Confirm:$false
+
+$websites = Get-Website
+
+if ($websites) {
+    Log-Message "Found the following websites:"
+    $websites | ForEach-Object { Log-Message $_.Name }
+
+    Log-Message "Removing all websites..."
+    $websites | ForEach-Object { Remove-Website -Name $_.Name }
+
+    Log-Message "All websites have been removed."
+} else {
+    Log-Message "No websites exist in IIS. Nothing to remove."
+}
+
+$appPools = Get-IISAppPool
+
+if ($appPools) {
+    Log-Message "Found the following application pools:"
+    $appPools | ForEach-Object { Log-Message $_.Name }
+
+    Log-Message "Removing all application pools..."
+    $appPools | ForEach-Object { Remove-WebAppPool -Name $_.Name }
+
+    Log-Message "All application pools have been removed."
+} else {
+    Log-Message "No application pools exist in IIS. Nothing to remove."
+}
+
 Log-Message "Creating IIS $siteName Website..."
 $physicalPath = "C:\inetpub\wwwroot\$siteName"
 
@@ -157,6 +192,8 @@ Start-IISCommitDelay
 (Get-IISAppPool -Name $siteName).enable32BitAppOnWin64 = $false
 Stop-IISCommitDelay
 Log-Message "Configured $siteName App Pool"
+
+Reset-IISServerManager -Confirm:$false
 
 Log-Message "$siteName Website configured successfully"
 
