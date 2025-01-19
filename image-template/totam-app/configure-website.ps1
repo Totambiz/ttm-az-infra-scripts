@@ -192,8 +192,4 @@ $hideFileExtRegPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\
 
 Set-ItemProperty -Path $hideFileExtRegPath -Name "HideFileExt" -Value 0
 
-# Notify Explorer of the change
-Stop-Process -Name explorer -Force
-Start-Process explorer
-
 Log-Message "Windows is now configured to show all file extensions."
