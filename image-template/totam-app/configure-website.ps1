@@ -79,20 +79,34 @@ else {
 Log-Message "Starting IIS services..."
 Start-Service -Name W3SVC
 
+$dotNetRuntimeUrl = "https://go.microsoft.com/fwlink/?linkid=2203305"
+$dotNetInstalleRuntimePath = "$env:TEMP\NDP481-x86-x64-AllOS-ENU.exe"
 
-$dotNetUrl = "https://go.microsoft.com/fwlink/?linkid=2203305"
-$dotNetInstallerPath = "$env:TEMP\NDP481-x86-x64-AllOS-ENU.exe"
-
-if (Test-Path $dotNetInstallerPath) {
-    Remove-Item -Path $dotNetInstallerPath -Force
-    Log-Message "Existing .NET Framework 4.8.1 installer deleted: $dotNetInstallerPath"
+if (Test-Path $dotNetInstalleRuntimePath) {
+    Remove-Item -Path $dotNetInstalleRuntimePath -Force
+    Log-Message "Existing .NET Framework 4.8.1 Runtime installer deleted: $dotNetInstalleRuntimePath"
 }
 
-Log-Message "Downloading .NET Framework 4.8.1 installer..."
-Invoke-WebRequest -Uri $dotNetUrl -OutFile $dotNetInstallerPath -UseBasicParsing
+Log-Message "Downloading .NET Framework 4.8.1 Runtime installer..."
+Invoke-WebRequest -Uri $dotNetRuntimeUrl -OutFile $dotNetInstalleRuntimePath -UseBasicParsing
 
-Log-Message "Running .NET Framework 4.8.1 installer..."
-Start-Process -FilePath $dotNetInstallerPath -ArgumentList "/quiet /norestart" -Wait
+Log-Message "Running .NET Framework 4.8.1 Runtime installer..."
+Start-Process -FilePath $dotNetInstalleRuntimePath -ArgumentList "/quiet /norestart" -Wait
+
+
+$dotNetDeveloperPackUrl = "https://go.microsoft.com/fwlink/?linkid=2203306"
+$dotNetInstalleDeveloperPackPath = "$env:TEMP\NDP481-DevPack-ENU.exe"
+
+if (Test-Path $dotNetInstalleDeveloperPackPath) {
+    Remove-Item -Path $dotNetInstalleDeveloperPackPath -Force
+    Log-Message "Existing .NET Framework 4.8.1 Developer Pack installer deleted: $dotNetInstalleDeveloperPackPath"
+}
+
+Log-Message "Downloading .NET Framework 4.8.1 Developer Pack installer..."
+Invoke-WebRequest -Uri $dotNetDeveloperPackUrl -OutFile $dotNetInstalleDeveloperPackPath -UseBasicParsing
+
+Log-Message "Running .NET Framework 4.8.1 Developer Pack installer..."
+Start-Process -FilePath $dotNetInstalleDeveloperPackPath -ArgumentList "/quiet /norestart" -Wait
 
 
 Log-Message "Installing URL Rewrite module..."
