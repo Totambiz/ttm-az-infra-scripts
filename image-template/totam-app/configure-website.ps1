@@ -45,9 +45,10 @@ if (Test-Path -Path $installScriptPath) {
 }
 
 Log-Message "Installing modules..."
-Install-PackageProvider -Name NuGet -Force
-Install-Module -Name PowerShellGet -Force
-Install-Module -Name Az.Storage -AllowClobber -Force
+Install-PackageProvider -Name NuGet -Force -Scope AllUsers
+Install-Module -Name PowerShellGet -Force -Scope AllUsers
+Install-Module -Name Az.Accounts -AllowClobber -Force -Scope AllUsers
+Install-Module -Name Az.Storage -AllowClobber -Force -Scope AllUsers
 Log-Message "Module installation complete"
 
 Import-Module PKI -ErrorAction SilentlyContinue
