@@ -1,6 +1,6 @@
 $siteName = "totam"
 
-$installScriptUrl = "https://raw.githubusercontent.com/Totambiz/ttm-az-infra-scripts/refs/tags/0.1.0/virtual-machine/totam-app/install-app.ps1"
+$installScriptUrl = "https://raw.githubusercontent.com/Totambiz/ttm-az-infra-scripts/refs/tags/0.3.0/virtual-machine/totam-app/install-app.ps1"
 $installScriptPath = "C:\install-app.ps1"
 
 $logDirectory = "C:\image-build-actions"
@@ -49,8 +49,6 @@ Install-PackageProvider -Name NuGet -Force -Scope AllUsers
 Install-Module -Name PowerShellGet -Force -Scope AllUsers
 Install-Module -Name Az.Accounts -AllowClobber -Force -Scope AllUsers
 Install-Module -Name Az.Storage -AllowClobber -Force -Scope AllUsers
- 
-Install-WindowsFeature -Name Web-Server -IncludeManagementTools -IncludeAllSubFeature 
 
 Log-Message "Module and feature installation complete"
 
@@ -63,7 +61,6 @@ Log-Message "Downloading install script and saving to $installScriptPath..."
 Invoke-WebRequest -Uri $installScriptUrl -OutFile $installScriptPath
 
 Log-Message "Install script downloaded and saved to $installScriptPath"
-
 
 Log-Message "Checking if IIS is already installed..."
 $feature = Get-WindowsFeature -Name Web-Server
@@ -138,9 +135,6 @@ else {
     exit 1
 }
 
-
-Reset-IISServerManager -Confirm:$false
-
 $websites = Get-Website
 
 if ($websites) {
@@ -187,12 +181,7 @@ Set-Acl -Path $physicalPath -AclObject $acl
 New-WebAppPool -Name $siteName -Force
 New-Website -Name $siteName -PhysicalPath $physicalPath -ApplicationPool $siteName -Force
 
-Start-IISCommitDelay
 (Get-IISAppPool -Name $siteName).enable32BitAppOnWin64 = $false
-Stop-IISCommitDelay
-Log-Message "Configured $siteName App Pool"
-
-Reset-IISServerManager -Confirm:$false
 
 Log-Message "$siteName Website configured successfully"
 
