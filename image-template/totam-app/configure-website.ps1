@@ -1,7 +1,6 @@
 $siteName = "totam"
 
-# TODO: Use a versioned URL from a release
-$installScriptUrl = "https://raw.githubusercontent.com/Totambiz/ttm-az-infra-scripts/refs/heads/main/virtual-machine/totam-app/install-app.ps1"
+$installScriptUrl = "https://raw.githubusercontent.com/Totambiz/ttm-az-infra-scripts/refs/tags/0.1.0/virtual-machine/totam-app/install-app.ps1"
 $installScriptPath = "C:\install-app.ps1"
 
 $logDirectory = "C:\image-build-actions"
