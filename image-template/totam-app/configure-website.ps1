@@ -1,6 +1,6 @@
 $siteName = "totam"
 
-$installScriptUrl = "https://raw.githubusercontent.com/Totambiz/ttm-az-infra-scripts/refs/tags/0.3.0/virtual-machine/totam-app/install-app.ps1"
+$installScriptUrl = "https://raw.githubusercontent.com/Totambiz/ttm-az-infra-scripts/refs/tags/0.2.0/virtual-machine/totam-app/install-app.ps1"
 $installScriptPath = "C:\install-app.ps1"
 
 $logDirectory = "C:\image-build-actions"
