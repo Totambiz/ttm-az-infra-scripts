@@ -181,6 +181,8 @@ Set-Acl -Path $physicalPath -AclObject $acl
 New-WebAppPool -Name $siteName -Force
 New-Website -Name $siteName -PhysicalPath $physicalPath -ApplicationPool $siteName -Force
 
+# Reset so the new app pool is availabe for configuration
+Reset-IISServerManager -Confirm:$false
 (Get-IISAppPool -Name $siteName).enable32BitAppOnWin64 = $false
 
 Log-Message "$siteName Website configured successfully"
