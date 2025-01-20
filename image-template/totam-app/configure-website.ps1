@@ -3,8 +3,8 @@ $siteName = "totam"
 $installScriptUrl = "https://raw.githubusercontent.com/Totambiz/ttm-az-infra-scripts/refs/tags/0.2.0/virtual-machine/totam-app/install-app.ps1"
 $installScriptPath = "C:\install-app.ps1"
 
-$logDirectory = "C:\image-build-actions"
-$logFile = "$logDirectory\configure-website-log.txt"
+$logDirectory = "C:\logs"
+$logFile = "$logDirectory\configure-image-log.txt"
 
 if (-not (Test-Path $logDirectory)) {
     New-Item -Path $logDirectory -ItemType Directory -Force
@@ -49,6 +49,7 @@ Install-PackageProvider -Name NuGet -Force -Scope AllUsers
 Install-Module -Name PowerShellGet -Force -Scope AllUsers
 Install-Module -Name Az.Accounts -AllowClobber -Force -Scope AllUsers
 Install-Module -Name Az.Storage -AllowClobber -Force -Scope AllUsers
+Install-Module -Name Az.KeyVault -AllowClobber -Force -Scope AllUsers
 
 Log-Message "Module and feature installation complete"
 
@@ -176,3 +177,35 @@ Reset-IISServerManager -Confirm:$false
 (Get-IISAppPool -Name $siteName).enable32BitAppOnWin64 = $false
 
 Log-Message "$siteName Website configured successfully"
+
+
+Log-Message "Authenticate with Azure using the VM's managed identity.."
+Connect-AzAccount -Identity 
+Log-Message "Authenticated"
+
+Log-Message "Retrieving Datadog API key from key vault..."
+$datadogApiKeySecret = Get-AzKeyVaultSecret -VaultName "ttm-core-eus-auto-main" -Name "datadog-api-key"
+$datadogApiKey = $datadogApiKeySecret.SecretValueText
+
+if (-not [string]::IsNullOrWhiteSpace($datadogApiKey)) {
+    Log-Message "Retrieved Datadog API key from key vault"
+} else {
+    Log-Message "The Datadog API key secret value is empty or could not be retrieved."
+}
+
+Log-Message "Installing Datadog agent..."
+$datadogAgentUrl = "https://s3.amazonaws.com/ddagent-windows-stable/datadog-agent-7-latest.amd64.msi"
+$datadogAgentInstallerPath = "$env:TEMP\datadog-agent-7-latest.amd64.msi"
+
+if (Test-Path $datadogAgentInstallerPath) {
+    Remove-Item -Path $datadogAgentInstallerPath -Force
+    Log-Message "Existing Datadog agent installer deleted: $datadogAgentInstallerPath"
+}
+
+Log-Message "Downloading Datadog agent installer..."
+Invoke-WebRequest -Uri $datadogAgentUrl -OutFile $datadogAgentInstallerPath -UseBasicParsing
+
+Log-Message "Running Datadog agent installer..."
+Start-Process -FilePath "msiexec.exe" -ArgumentList '/qn /i $datadogAgentInstallerPath APIKEY="${$datadogApiKey}" /quiet /norestart' -Wait
+
+Log-Message "Datadog agent installed"
