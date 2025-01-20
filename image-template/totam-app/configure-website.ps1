@@ -178,11 +178,6 @@ Reset-IISServerManager -Confirm:$false
 
 Log-Message "$siteName Website configured successfully"
 
-
-Log-Message "Authenticate with Azure using the VM's managed identity.."
-Connect-AzAccount -Identity 
-Log-Message "Authenticated"
-
 Log-Message "Retrieving Datadog API key from key vault..."
 $datadogApiKeySecret = Get-AzKeyVaultSecret -VaultName "ttm-core-eus-auto-main" -Name "datadog-api-key"
 $datadogApiKey = $datadogApiKeySecret.SecretValueText
@@ -206,6 +201,6 @@ Log-Message "Downloading Datadog agent installer..."
 Invoke-WebRequest -Uri $datadogAgentUrl -OutFile $datadogAgentInstallerPath -UseBasicParsing
 
 Log-Message "Running Datadog agent installer..."
-Start-Process -FilePath "msiexec.exe" -ArgumentList '/qn /i $datadogAgentInstallerPath APIKEY="${$datadogApiKey}" /quiet /norestart' -Wait
+Start-Process -FilePath "msiexec.exe" -ArgumentList '/qn /i $datadogAgentInstallerPath /quiet /norestart' -Wait
 
 Log-Message "Datadog agent installed"
