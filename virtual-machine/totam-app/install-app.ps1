@@ -1,7 +1,8 @@
 param (
     [string]$StorageAccountName,
     [string]$ContainerName,
-    [string]$Blob
+    [string]$Blob,
+    [string]$Version
 )
 
 $siteName = "totam"
@@ -58,7 +59,7 @@ if (-not $Blob) {
 }
 
 Log-Message "Blob param provided: $Blob"
-
+Log-Message "Version param provided: $Version"
 
 if (-Not (Test-Path -Path $destinationPath)) {
     Log-Message "The application folder doesn't exist at $destinationPath. This image is not configured correctly"
